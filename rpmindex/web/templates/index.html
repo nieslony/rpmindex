@@ -1,11 +1,46 @@
 <html>
 
 <head>
-    <title>{{ title }}</title>
+    <title>{{ title }} - /{{ path }}</title>
 </head>
 
 <body>
     <h1>{{ title }}</h1>
+
+    <h2>/{{ path }}</h2>
+
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Size</th>
+            <th>Modified</th>
+            <th>RPM description</th>
+        </tr>
+        {% for dir in dirs -%}
+        <tr>
+            <td>
+                <a href="{{ url_for('index.index', path=path+'/'+dir.name) }}">
+                    {{ dir.name }}
+                </a>
+            </td>
+            <td>{{ dir.size }}</td>
+            <td>{{ dir.modified }}</td>
+            </td></td>
+        </tr>
+        {% endfor -%}
+        {% for file in files -%}
+        <tr>
+            <td>
+                <a href="{{ url_for('index.index', path=path+'/'+file.name) }}">
+                    {{ file.name }}
+                </a>
+            </td>
+            <td>{{ file.size }}</td>
+            <td>{{ file.modified }}</td>
+            <td>{{ file.description }}</td>
+        </tr>
+        {% endfor -%}
+    </table>
 </body>
 
 </html>
