@@ -1,6 +1,11 @@
 <html>
 
 <head>
+    <link rel="icon"
+          type="image/ico"
+          href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='rpmindex.css') }}">
     <title>{{ title }} - /{{ path }}</title>
 </head>
 
@@ -11,6 +16,7 @@
 
     <table>
         <tr>
+            <th></th>
             <th>Name</th>
             <th>Size</th>
             <th>Modified</th>
@@ -18,24 +24,26 @@
         </tr>
         {% for dir in dirs -%}
         <tr>
+            <td>&#x1F4C1;</td>
             <td>
                 <a href="{{ url_for('index.index', path=path+'/'+dir.name) }}">
                     {{ dir.name }}
                 </a>
             </td>
-            <td>{{ dir.size }}</td>
+            <td class="numeric">{{ dir.size }}</td>
             <td>{{ dir.modified }}</td>
             </td></td>
         </tr>
         {% endfor -%}
         {% for file in files -%}
         <tr>
+            <td></td>
             <td>
                 <a href="{{ url_for('index.index', path=path+'/'+file.name) }}">
                     {{ file.name }}
                 </a>
             </td>
-            <td>{{ file.size }}</td>
+            <td class="numeric">{{ file.size }}</td>
             <td>{{ file.modified }}</td>
             <td>{{ file.description }}</td>
         </tr>
