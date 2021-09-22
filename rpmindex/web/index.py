@@ -10,10 +10,20 @@ bp = flask.Blueprint("index", __name__)
 def index(path):
     app = flask.current_app
     repo_path = os.path.realpath(app.config["repo"]["path"])
-    repo_name =  app.config["repo"]["name"]
-    folder = os.path.realpath(f"{repo_path}/{path}")
+    full_path = os.path.realpath(f"{repo_path}/{path}")
 
+    if os.path.isdir(full_path):
+        return read_folder(full_path, path)
+    elif os.path.isfile(full_path):
+        return download_file(full_path)
+
+def download_file(filename):
+    return flask.send_file(filename)
+
+def read_folder(folder, path):
+    app = flask.current_app
     app.logger.info(f"Reading folder {folder}")
+    repo_name =  app.config["repo"]["name"]
     files = []
     dirs = []
     if not path in ["/", ""]:
