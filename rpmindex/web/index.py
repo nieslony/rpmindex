@@ -2,6 +2,7 @@ import flask
 import os
 import datetime
 import rpm
+import operator
 
 bp = flask.Blueprint("index", __name__)
 
@@ -13,11 +14,17 @@ def index(path):
     full_path = os.path.realpath(f"{repo_path}/{path}")
 
     if os.path.isdir(full_path):
+        app.logger.info(f"{full_path} is directory")
         return read_folder(full_path, path)
     elif os.path.isfile(full_path):
+        app.logger.info(f"{full_path} is file")
         return download_file(full_path)
+    else:
+        app.logger.error(f"File or directory not found: {full_path}")
+        return flask.abort(404)
 
 def download_file(filename):
+    app.logger.info("Streaming {filename}")
     return flask.send_file(filename)
 
 def read_folder(folder, path):
@@ -66,12 +73,13 @@ def read_folder(folder, path):
                     "modified": mod_time.strftime("%Y-%m-%d %H:%M:%S"),
                     })
     except FileNotFoundError as ex:
+        app.logger(str(ex))
         flask.abort(404)
 
     args = {
         "title": repo_name,
         "path": path,
-        "files": files,
-        "dirs": dirs
+        "files": sorted(files, key=operator.itemgetter("name")),
+        "dirs": sorted(dirs, key=operator.itemgetter("name"))
         }
     return flask.render_template("index.html", **args)
