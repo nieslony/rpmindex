@@ -3,6 +3,8 @@ import logging
 import os
 import yaml
 
+from rpmindex.common.utils import dict_merge
+
 def create_app():
     app = flask.Flask(__name__)
     app.logger.setLevel(logging.DEBUG)
