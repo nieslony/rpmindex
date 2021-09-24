@@ -1,7 +1,7 @@
 repo:
     path: /var/www/rpmrepos
     name: "Unknown repository"
-    folderrnamws:
+    folderrnames:
     - path: repo1
       description: Repository 1
     - path: repo2
