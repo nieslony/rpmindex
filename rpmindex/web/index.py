@@ -1,8 +1,8 @@
-import flask
-import os
 import datetime
-import rpm
+import flask
 import operator
+import os
+import rpm
 
 bp = flask.Blueprint("index", __name__)
 
@@ -34,11 +34,18 @@ def read_folder(folder, path):
     files = []
     dirs = []
     if not path in ["/", ""]:
+        while path.endswith("/"):
+            path = path[:-1]
         dirs.append({
             "name": "..",
             "size": "",
             "modified": ""
             })
+    folder_infos = app.config["repo"]["folderrnames"]
+    for folder_info in sorted(folder_infos, key=operator.itemgetter("path")):
+        p = folder_info["path"]
+        if is_prefix_of(p, path):
+            repo_name = folder_info["description"]
     try:
         for filename in os.listdir(folder):
             filepath = f"{folder}/{filename}"
@@ -83,3 +90,19 @@ def read_folder(folder, path):
         "dirs": sorted(dirs, key=operator.itemgetter("name"))
         }
     return flask.render_template("index.html", **args)
+
+def is_prefix_of(path1, path2):
+    while path1.startswith("/"):
+        path1 = path1[1:]
+    while path2.startswith("/"):
+        path2 = path2[1:]
+    while path1.endswith("/"):
+        path1 = path2[:-1]
+    while path2.endswith("/"):
+        path2 = path2[:-1]
+    path1_list = path1.split("/")
+    path2_list = path2.split("/")
+    for i in range(len(path1_list)):
+        if path1_list[i] != path2_list[i]:
+            return False
+    return True
