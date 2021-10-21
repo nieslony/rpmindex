@@ -1,3 +1,7 @@
+"""
+Provide repository information from repodata folder
+"""
+
 import xml.dom.minidom
 import gzip
 
@@ -6,6 +10,9 @@ import flask
 from rpmindex.common.utils import is_prefix_of
 
 class PackageVersion:
+    """
+    Package version
+    """
     def __init__(self, version_node):
         self._epoch = version_node.getAttribute("epoch")
         self._ver = version_node.getAttribute("ver")
@@ -23,6 +30,9 @@ class PackageVersion:
         return self._rel
 
 class PackageInfo:
+    """
+    Package information
+    """
     def __init__(self, dom_node):
         self._dom_node = dom_node
 
@@ -56,6 +66,9 @@ class PackageInfo:
         return node.firstChild.wholeText
 
 class RepoData:
+    """
+    Information abut all packages in repository
+    """
     def __init__(self, folder_path):
         self._folder_path = folder_path
         self._repo_data = {}

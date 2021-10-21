@@ -2,15 +2,8 @@ import datetime
 import os
 import re
 import textwrap
-import gzip
-
-import xml
 
 import flask
-
-from enum import Enum, auto
-
-from rpmindex.web.repo_data import RepoData
 
 class FolderEntry:
     def __init__(self):
@@ -19,6 +12,7 @@ class FolderEntry:
         self._description = ""
         self._modified = ""
         self._size = None
+        self._repo_data = None
 
     @property
     def name(self) -> str:
@@ -69,7 +63,7 @@ class FolderIndex:
         self._path = path
         self._files = []
         self._dirs = []
-        self._repodata = None
+        self._repo_data = None
 
     @property
     def files(self):
