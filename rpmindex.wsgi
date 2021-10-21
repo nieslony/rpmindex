@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import argparse
 import os
@@ -32,6 +32,7 @@ def main():
     os.environ["FLASK_ENV"] = args.environment
     if "config" in args:
         os.environ["CONFIG_PATH"] = args.config
+
     app = create_app()
     app.logger.info("Created app from min function")
     app.run(host=args.listen, port=args.port)
@@ -41,4 +42,12 @@ if __name__ == "__main__":
     main()
 else:
     # run from wsgi
-    application = create_app()
+    my_dir = f"{os.path.dirname(__file__)}"
+
+    args = {
+        "static_folder": f"{my_dir}/static",
+        "template_folder": f"{my_dir}/templates",
+        }
+
+    application = create_app(**args)
+    application.default_config_path = f"{my_dir}/rpmindex.yml"

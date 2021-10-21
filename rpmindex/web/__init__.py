@@ -2,16 +2,28 @@ import flask
 import logging
 import os
 import re
+import signal
 import yaml
 
 from rpmindex.common.utils import dict_merge, is_prefix_of
 from rpmindex.web.repo_data import RepoData
 
 class RpmIndexApp(flask.Flask):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name, **kwargs):
+        super().__init__(name, **kwargs)
 
         self._repo_data = {}
+        self._default_config_path  = os.path.realpath(
+            f"{os.path.dirname(__file__)}/../../rpmindex.yml"
+            )
+
+    @property
+    def default_config_path(self):
+        return self._default_config_path
+
+    @default_config_path.setter
+    def default_config_path(self, value):
+        self._default_config_path = value
 
     @property
     def repo_path(self):
@@ -49,8 +61,8 @@ class RpmIndexApp(flask.Flask):
         app.logger.info(f"No repodata found for folder {folder_path}")
         return None
 
-def create_app():
-    app = RpmIndexApp(__name__)
+def create_app(**kwargs):
+    app = RpmIndexApp(__name__, **kwargs)
     app.logger.setLevel(logging.DEBUG)
 
     app.logger.info("Loading blueprints")
@@ -59,9 +71,8 @@ def create_app():
 
     @app.before_first_request
     def bfr():
-        default_config_fn = f"{os.path.dirname(__file__)}/../../rpmindex.yml"
-        app.logger.info(f"Loading default config from {default_config_fn}")
-        with open(default_config_fn) as f:
+        app.logger.info(f"Loading default config from {app.default_config_path}")
+        with open(app.default_config_path) as f:
             config = yaml.load(f, Loader=yaml.Loader)
         # app.logger.debug(config)
 
@@ -75,6 +86,7 @@ def create_app():
                     custom_config = yaml.load(f, Loader=yaml.FullLoader)
             except Exception as ex:
                 app.logger.fatal(f"Cannot load custom config: {str(ex)}")
+                os.kill(os.getpid(), signal.SIGKILL)
                 return
             dict_merge(config, custom_config)
         else:
