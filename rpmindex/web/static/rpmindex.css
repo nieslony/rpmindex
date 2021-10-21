@@ -1,26 +1,48 @@
+:root {
+    --main-bg-color: #59b385;
+    --text-color: #232323;
+}
+
+
 body {
     font-family: verdana, arial, helvetica, sans-serif;
     font-size: 12pt;
     font-weight: normal;
-    color: black;
+    color: var(--text-color);
+    background-color: var(--main-bg-color);
+    padding: 1em;
 }
 
 h1 {
     font-size: 200%;
     font-weight: bold;
+    border-color: var(--text-color);
+    border-width:1pt;
+    background-color: white;
+    border-style: solid;
+    color: var(--text-color);
+    padding: 5pt;
 }
 
 h2 {
+    color: var(--text-color);
     font-size: 150%;
     font-weight: bold;
 }
 
 table {
-  border-collapse: collapse;
+    border-collapse: collapse;
+    border-color: var(--text-color);
+    border-width:1pt;
+    background-color: white;
+    border-style: solid;
+    color: var(--text-color);
+    padding: 5pt;
+    width: 100%;
 }
 
 th {
-    background-color: black;
+    background-color: var(--text-color);
     color: white;
     text-align: left;
 }
@@ -34,4 +56,46 @@ td, th {
 
 td.numeric {
     text-align: right;
+}
+
+a {
+    color: var(--text-color);
+}
+
+a:visited {
+    color: var(--text-color);
+};
+
+.with_tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.with_tooltip .tooltip {
+    visibility: hidden;
+    width: 40em;
+    background-color: #ffffbb;
+    color: black;
+    border-color: black;
+    border-style: solid;
+    border-width: 1pt;
+    padding: 1em;
+
+
+    position: absolute;
+    z-index: 1;
+}
+
+.with_tooltip:hover .tooltip {
+    visibility: visible;
+}
+
+dl {
+    padding: 0;
+    margin: 0;
+}
+
+dt {
+    font-weight: bold;
+    font-size: 80%;
 }

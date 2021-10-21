@@ -20,7 +20,7 @@
             <th>Name</th>
             <th>Size</th>
             <th>Modified</th>
-            <th>Description</th>
+            <th>Summary</th>
         </tr>
         {% for dir in dirs -%}
         <tr>
@@ -30,22 +30,30 @@
                     {{ dir.name }}
                 </a>
             </td>
-            <td class="numeric">{{ dir.size }}</td>
+            <td></td>
             <td>{{ dir.modified }}</td>
-            </td></td>
+            <td></td>
         </tr>
         {% endfor -%}
         {% for file in files -%}
         <tr>
             <td></td>
-            <td>
+            <td class="with_tooltip">
                 <a href="{{ url_for('index.index', path=path+'/'+file.name) }}">
                     {{ file.name }}
                 </a>
+                {% if file.has_rpm_extra_info() %}
+                <span class="tooltip">
+                    <dl>
+                        <dt>Description</dt>
+                        <dd>{{ file.description | safe }}</dd>
+                    </dl>
+                </span>
+                {% endif %}
             </td>
             <td class="numeric">{{ file.size }}</td>
             <td>{{ file.modified }}</td>
-            <td>{{ file.description }}</td>
+            <td>{{ file.summary }}</td>
         </tr>
         {% endfor -%}
     </table>

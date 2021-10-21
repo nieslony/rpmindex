@@ -2,7 +2,11 @@ import datetime
 import flask
 import operator
 import os
+import re
 import rpm
+import textwrap
+
+import rpmindex.web.folder_index as folder_index
 
 bp = flask.Blueprint("index", __name__)
 
@@ -10,22 +14,75 @@ bp = flask.Blueprint("index", __name__)
 @bp.route('/<path:path>')
 def index(path):
     app = flask.current_app
-    repo_path = os.path.realpath(app.config["repo"]["path"])
-    full_path = os.path.realpath(f"{repo_path}/{path}")
+    while path.endswith("/"):
+        path = path[:-1]
+    folder_path = os.path.realpath(f"{app.repo_path}/{path}")
 
-    if os.path.isdir(full_path):
-        app.logger.info(f"{full_path} is directory")
-        return read_folder(full_path, path)
-    elif os.path.isfile(full_path):
-        app.logger.info(f"{full_path} is file")
-        return download_file(full_path)
-    else:
-        app.logger.error(f"File or directory not found: {full_path}")
-        return flask.abort(404)
+    folder_path = re.sub("/RPM-GPG-KEY-[^\-]+", "/RPM-GPG-KEY", folder_path)
+
+    if folder_path.endswith(".repo"):
+        return download_repo_file(path, folder_path)
+
+    if os.path.isdir(folder_path):
+        return dir_index(path, folder_path)
+    if os.path.isfile(folder_path):
+        return download_file(folder_path)
+
+    app.logger.error(f"{folder_path} is neither file nor directory")
+    return flask.abort(404)
+
+def dir_index(path, full_path):
+    app = flask.current_app
+    fi = folder_index.FolderIndex(path, full_path)
+    fi.read()
+
+    args = {
+        "title": app.repo_name,
+        "path": path,
+        "files": sorted(fi.files, key=lambda x: x.name),
+        "dirs": sorted(fi.dirs, key=lambda x: x.name)
+        }
+    return flask.render_template("index.html", **args)
 
 def download_file(filename):
-    app.logger.info("Streaming {filename}")
+    app = flask.current_app
+    app.logger.info(f"Streaming {filename}")
     return flask.send_file(filename)
+
+def download_repo_file(path, full_path):
+    app = flask.current_app
+    dirname = os.path.dirname(full_path)
+
+    if not os.path.isdir(f"{dirname}/repodata"):
+        app.logger.error(f"There's no repodata in {dirname} => no .repo")
+        return flask.abort(404)
+
+    basename = os.path.basename(full_path)
+    repo_file_name = f"{app.repo_name_encoded}.repo".lower()
+    if basename != repo_file_name:
+        app.logger.info(f"Filename {basename} doesn't match {repo_file_name}")
+        return flask.abort(404)
+
+    resp = flask.make_response(folder_index.repo_file_content(path))
+    resp.mimetype = "text/plain"
+    return resp
+
+########################################
+
+def direntry_rpm(filepath):
+    app = flask.current_app
+    app.logger.info(f"{filepath} is RPM")
+    fd = os.open(filepath, os.O_RDONLY)
+    ts = rpm.ts()
+    try:
+        headers = ts.hdrFromFdno(fd)
+        description = headers[rpm.RPMTAG_SUMMARY]
+    except Exception as ex:
+        app.logger.error(f"Error getting headers from {filepath} :{str(ex)}")
+        description = ""
+    os.close(fd)
+
+    return description
 
 def read_folder(folder, path):
     app = flask.current_app
@@ -53,16 +110,7 @@ def read_folder(folder, path):
             mod_time = datetime.datetime.fromtimestamp(stat.st_mtime)
             if os.path.isfile(filepath):
                 if filename.endswith(".rpm"):
-                    app.logger.info(f"{filename} is RPM")
-                    fd = os.open(filepath, os.O_RDONLY)
-                    ts = rpm.ts()
-                    try:
-                        headers = ts.hdrFromFdno(fd)
-                        description = headers[rpm.RPMTAG_SUMMARY]
-                    except Exception as ex:
-                        app.logger.error(f"Error getting headers from {filepath} :{str(ex)}")
-                        description = ""
-                    os.close(fd)
+                    description = direntry_rpm(filepath)
                 else:
                     app.logger.info(f"{filename} is not RPM")
                     description = ""
@@ -79,6 +127,14 @@ def read_folder(folder, path):
                     "size": stat.st_size,
                     "modified": mod_time.strftime("%Y-%m-%d %H:%M:%S"),
                     })
+                if filename == "repodata":
+                    # we are in a repo's root folder
+
+                    files.append({
+                        "name": f"{os.path.basename(folder)}.repo",
+                        "size": "123",
+                        "modified": mod_time.strftime("%Y-%m-%d %H:%M:%S"),
+                        })
     except FileNotFoundError as ex:
         app.logger(str(ex))
         flask.abort(404)
@@ -91,18 +147,3 @@ def read_folder(folder, path):
         }
     return flask.render_template("index.html", **args)
 
-def is_prefix_of(path1, path2):
-    while path1.startswith("/"):
-        path1 = path1[1:]
-    while path2.startswith("/"):
-        path2 = path2[1:]
-    while path1.endswith("/"):
-        path1 = path2[:-1]
-    while path2.endswith("/"):
-        path2 = path2[:-1]
-    path1_list = path1.split("/")
-    path2_list = path2.split("/")
-    for i in range(len(path1_list)):
-        if path1_list[i] != path2_list[i]:
-            return False
-    return True
