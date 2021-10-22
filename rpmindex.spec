@@ -39,7 +39,7 @@ Python package for %{srcname}
 rm -rf $RPM_BUILD_ROOT
 %py3_install
 
-mkdir -vp $RPM_BUILD_ROOT/var/www/rpmindex
+mkdir -vp $RPM_BUILD_ROOT/var/www/rpmindex/{static,templates}
 mkdir -vp $RPM_BUILD_ROOT/etc/httpd/conf.d
 install rpmindex.wsgi rpmindex.yml $RPM_BUILD_ROOT/var/www/rpmindex
 install -v -D rpmindex/web/static/* -t $RPM_BUILD_ROOT/var/www/rpmindex/static
