@@ -10,8 +10,6 @@ PY_FOLDERS=$(
     tr -d "\n"
     )
 
-echo $PY_FOLDERS
-
 rpmspec --parse rpmindex.spec | awk -v packages="$PY_FOLDERS" '
     BEGIN {
         print "from distutils.core import setup";
@@ -28,8 +26,8 @@ rpmspec --parse rpmindex.spec | awk -v packages="$PY_FOLDERS" '
 ' > setup.py
 
 tar --exclude={*~,site,*gz,make_tar.sh,.git*,__pycache__,$0} \
-    --transform=s/^./$PKG_NAME-$PKG_VERSION/ \
+    --transform=s/^/$PKG_NAME-$PKG_VERSION\\// \
     -cvzf $PKG_NAME-$PKG_VERSION.tar.gz \
     --owner=0 --group=0 \
-    .
+    *
 
