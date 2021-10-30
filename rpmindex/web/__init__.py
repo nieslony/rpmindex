@@ -47,14 +47,22 @@ class RpmIndexApp(flask.Flask):
         app = flask.current_app
         path = folder_path
         while is_prefix_of(self.repo_path, path):
-            app.logger.debug(f"Searching for repodata ib {path}")
+            app.logger.debug(f"Searching for repodata in {path}")
             if path in self._repo_data:
                 app.logger.info(f"repodata for {folder_path} already loaded")
-                return self._repo_data[path]
+                mtime, repo_data = self._repo_data[path]
+                stat = os.stat(f"{path}/repodata/repomd.xml")
+                if stat.st_mtime > mtime:
+                    app.logger.info(f"repomd.xml is newer than loaded one. Reloading")
+                    repo_data = RepoData(path)
+                    repo_data.load()
+                    self._repo_data[path] = (stat.st_mtime, repo_data)
+                return repo_data
             if os.path.isdir(f"{path}/repodata"):
+                stat = os.stat(f"{path}/repodata/repomd.xml")
                 repo_data = RepoData(path)
                 repo_data.load()
-                self._repo_data[path] = repo_data
+                self._repo_data[path] = (stat.st_mtime, repo_data)
                 return repo_data
             path = "/".join(path.split("/")[:-1])
 

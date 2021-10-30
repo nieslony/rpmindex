@@ -55,7 +55,7 @@ class FolderEntry:
         self._size = value
 
     def has_rpm_extra_info(self):
-        return self._name.endswith(".rpm")
+        return self._name.endswith(".rpm") and self._description
 
 class FolderIndex:
     def __init__(self, path, folder_path):
@@ -115,12 +115,11 @@ class FolderIndex:
         else:
             entry.name = entry_name
 
-        if entry_name.endswith(".rpm"):
+        if entry_name.endswith(".rpm") and self._repo_data:
             package_info = self._repo_data.package_info(entry_path)
-            entry.description = package_info.description.replace("\n", "<br>")
-            entry.summary = package_info.summary
-        else:
-            entry.description = ""
+            if package_info:
+                entry.description = package_info.description.replace("\n", "<br>")
+                entry.summary = package_info.summary
         entry.size = stat.st_size
         entry.modified = datetime.datetime.fromtimestamp(stat.st_mtime)
 
@@ -165,6 +164,7 @@ def repo_file_content(path):
         enabled=1
         repo_gpgcheck=1
         baseurl={repo_url}
+        gpgkey={repo_url}
         """
 
     return textwrap.dedent(content)

@@ -5,8 +5,10 @@ import os
 import re
 import rpm
 import textwrap
+import http
 
 import rpmindex.web.folder_index as folder_index
+from rpmindex.common.utils import is_prefix_of
 
 bp = flask.Blueprint("index", __name__)
 
@@ -17,6 +19,11 @@ def index(path):
     while path.endswith("/"):
         path = path[:-1]
     folder_path = os.path.realpath(f"{app.repo_path}/{path}")
+    if not is_prefix_of(app.repo_path, folder_path):
+        app.logger.error(
+            f"Requiested folder {folder_path} is outsite repository {app.repo_path}"
+            )
+        return flask.abort(http.HTTPStatus.NOT_FOUND.value)
 
     folder_path = re.sub("/RPM-GPG-KEY-[^\-]+", "/RPM-GPG-KEY", folder_path)
 
@@ -29,7 +36,7 @@ def index(path):
         return download_file(folder_path)
 
     app.logger.error(f"{folder_path} is neither file nor directory")
-    return flask.abort(404)
+    return flask.abort(http.HTTPStatus.NOT_FOUND.value)
 
 def dir_index(path, full_path):
     app = flask.current_app
