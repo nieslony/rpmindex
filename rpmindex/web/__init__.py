@@ -71,7 +71,6 @@ class RpmIndexApp(flask.Flask):
 
 def create_app(**kwargs):
     app = RpmIndexApp(__name__, **kwargs)
-    app.logger.setLevel(logging.DEBUG)
 
     app.logger.info("Loading blueprints")
     import rpmindex.web.index
@@ -82,7 +81,6 @@ def create_app(**kwargs):
         app.logger.info(f"Loading default config from {app.default_config_path}")
         with open(app.default_config_path) as f:
             config = yaml.load(f, Loader=yaml.Loader)
-        # app.logger.debug(config)
 
         custom_config_fn = flask.request.environ.get("CONFIG_PATH")
         if not custom_config_fn:
@@ -100,7 +98,6 @@ def create_app(**kwargs):
         else:
             app.logger.info("No custom config given, skipping.")
         app.config.update(**config)
-        # app.logger.debug(config)
 
         app.logger.info("After startup initialization finished.")
 

@@ -61,12 +61,14 @@ def download_repo_file(path, full_path):
         app.logger.error(f"There's no repodata in {dirname} => no .repo")
         return flask.abort(404)
 
+    fi = folder_index.FolderIndex(path, dirname)
+    fi.read()
+
     basename = os.path.basename(full_path)
-    repo_file_name = f"{app.repo_name_encoded}.repo".lower()
-    if basename != repo_file_name:
-        app.logger.info(f"Filename {basename} doesn't match {repo_file_name}")
+    if basename != fi.repo_file_name():
+        app.logger.info(f"Filename {basename} doesn't match {fi.repo_file_name()}")
         return flask.abort(404)
 
-    resp = flask.make_response(folder_index.repo_file_content(path))
+    resp = flask.make_response(fi.repo_file_content())
     resp.mimetype = "text/plain"
     return resp

@@ -1,4 +1,5 @@
 import datetime
+import glob
 import os
 import re
 import textwrap
@@ -133,14 +134,18 @@ class FolderIndex:
             entry_name
             )
 
+    def repo_file_name(self):
+        app = flask.current_app
+        return f"{app.repo_name_encoded.lower()}.repo"
+
     def _add_repo_file(self):
         app = flask.current_app
         stat = os.stat(self._folder_path)
 
         entry = FolderEntry()
-        entry.name = f"{app.repo_name_encoded.lower()}.repo"
+        entry.name = self.repo_file_name()
         entry.description = ""
-        entry.size = len(repo_file_content(self._path))
+        entry.size = len(self.repo_file_content())
         entry.modified = datetime.datetime.fromtimestamp(stat.st_mtime)
 
         self._files.append(entry)
@@ -153,18 +158,25 @@ class FolderIndex:
 
         self._dirs.append(entry)
 
-def repo_file_content(path):
-    app = flask.current_app
-    repo_url = f"{flask.url_for('index.index', path=os.path.dirname(path), _external=True)}"
+    def repo_file_content(self):
+        app = flask.current_app
+        repo_url = f"{flask.url_for('index.index', path=os.path.dirname(self._path), _external=True)}"
 
-    content = f"""
-        [{app.repo_name_encoded.lower()}]
-        name={app.repo_name} - $releasever
-        type=rpm
-        enabled=1
-        repo_gpgcheck=1
-        baseurl={repo_url}
-        gpgkey={repo_url}
-        """
+        key_files = glob.glob(f"{self._folder_path}/RPM-GPG-KEY-*")
+        if key_files:
+            key_file_name = os.path.basename(key_files[0])
+            gpgkey = f"gpgkey={repo_url}/{self._make_key_name(key_file_name)}"
+        else:
+            gpgkey = ""
 
-    return textwrap.dedent(content)
+        content = f"""
+            [{app.repo_name_encoded.lower()}]
+            name={app.repo_name} - $releasever
+            type=rpm
+            enabled=1
+            repo_gpgcheck=1
+            baseurl={repo_url}
+            {gpgkey}
+            """
+
+        return textwrap.dedent(content)
