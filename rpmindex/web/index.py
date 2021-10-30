@@ -1,11 +1,8 @@
-import datetime
-import flask
-import operator
+import http
 import os
 import re
-import rpm
-import textwrap
-import http
+
+import flask
 
 import rpmindex.web.folder_index as folder_index
 from rpmindex.common.utils import is_prefix_of
