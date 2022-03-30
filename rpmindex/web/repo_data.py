@@ -98,4 +98,4 @@ class RepoData:
             return None
 
         suffix = file_path[len(self._folder_path)+1:]
-        return self._repo_data[suffix]
+        return self._repo_data.get(suffix)
