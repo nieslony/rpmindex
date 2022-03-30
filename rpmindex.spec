@@ -18,7 +18,9 @@ BuildRequires:  python%{python3_pkgversion}-setuptools
 Requires:       python%{python3_pkgversion}-%{srcname}
 Requires:       python%{python3_pkgversion}-flask python%{python3_pkgversion}-pyyaml
 
+%if 0%{?redhat} > 7 || 0%{?centos} > 7 || 0%{?fedora} > 0
 Recommends:     httpd python%{python3_pkgversion}-mod_wsgi
+%endif
 
 %{?python_enable_dependency_generator}
 
