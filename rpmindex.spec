@@ -16,6 +16,9 @@ BuildRequires:  python%{python3_pkgversion}-devel
 BuildRequires:  python%{python3_pkgversion}-setuptools
 
 Requires:       python%{python3_pkgversion}-%{srcname}
+Requires:       python%{python3_pkgversion}-flask python%{python3_pkgversion}-pyyaml
+
+Recommends:     httpd python%{python3_pkgversion}-mod_wsgi
 
 %{?python_enable_dependency_generator}
 
