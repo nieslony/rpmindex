@@ -143,11 +143,17 @@ class FolderIndex:
         stat = os.stat(self._folder_path)
 
         entry = FolderEntry()
+        entry.name = "repository.repo"
+        entry.description = ""
+        entry.size = len(self.repo_file_content())
+        entry.modified = datetime.datetime.fromtimestamp(stat.st_mtime)
+        self._files.append(entry)
+
+        entry = FolderEntry()
         entry.name = self.repo_file_name()
         entry.description = ""
         entry.size = len(self.repo_file_content())
         entry.modified = datetime.datetime.fromtimestamp(stat.st_mtime)
-
         self._files.append(entry)
 
     def _add_dir_up(self):

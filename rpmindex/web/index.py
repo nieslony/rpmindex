@@ -1,4 +1,5 @@
 import http
+import io
 import os
 import re
 
@@ -65,10 +66,21 @@ def download_repo_file(path, full_path):
     fi.read()
 
     basename = os.path.basename(full_path)
+    if basename == fi.repo_file_name():
+        stream = io.BytesIO(fi.repo_file_content().encode("utf-8"))
+        return flask.send_file(
+            stream,
+            mimetype="text/plain",
+            download_name=fi.repo_file_name(),
+            as_attachment=True
+            )
+
+    print(basename)
+    if basename == "repository.repo":
+        resp = flask.redirect(fi.repo_file_name(), 308)
+        return resp
+
     if basename != fi.repo_file_name():
         app.logger.info(f"Filename {basename} doesn't match {fi.repo_file_name()}")
         return flask.abort(404)
 
-    resp = flask.make_response(fi.repo_file_content())
-    resp.mimetype = "text/plain"
-    return resp
