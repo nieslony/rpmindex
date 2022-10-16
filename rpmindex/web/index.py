@@ -68,12 +68,15 @@ def download_repo_file(path, full_path):
     basename = os.path.basename(full_path)
     if basename == fi.repo_file_name():
         stream = io.BytesIO(fi.repo_file_content().encode("utf-8"))
-        return flask.send_file(
+        resp = flask.send_file(
             stream,
             mimetype="text/plain",
             download_name=fi.repo_file_name(),
             as_attachment=True
             )
+        resp.headers["x-filename"] = fi.repo_file_name()
+        resp.headers["Access-Control-Expose-Headers"] = 'x-filename'
+        return resp
 
     print(basename)
     if basename == "repository.repo":
