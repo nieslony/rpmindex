@@ -51,6 +51,10 @@ install -v -D rpmindex/web/static/* -t $RPM_BUILD_ROOT/var/www/rpmindex/static
 install -v -D rpmindex/web/templates/* -t $RPM_BUILD_ROOT/var/www/rpmindex/templates
 install -v rpmindex.conf $RPM_BUILD_ROOT/etc/httpd/conf.d/rpmindex.conf
 
+%post
+mkdir -vp /var/www/rpmrepos
+chown apache.apache /var/www/rpmrepos
+
 %files -n  python%{python3_pkgversion}-%{srcname}
 %{!?_licensedir:%global license %%doc}
 %license LICENSE
@@ -58,6 +62,7 @@ install -v rpmindex.conf $RPM_BUILD_ROOT/etc/httpd/conf.d/rpmindex.conf
 # For noarch packages: sitelib
 %{python3_sitelib}/%{srcname}
 %{python3_sitelib}/%{srcname}-%{version}-py%{python3_version}.egg-info
+%ghost /var/www/rpmrepos
 
 %files
 /var/www/rpmindex
